@@ -224,7 +224,7 @@ class OT_OT(Frame):
                 self.find_keypoints()
                 if self.error is None :
                     self.tracker_enabled = True
-                self.error = None
+                #self.error = None
                 self.play()
 
     def draw_selection_rect(self) :
@@ -245,9 +245,11 @@ class OT_OT(Frame):
         kp2,des2=surf.detectAndCompute(self.selected_image_gray,None)
         #print(des1.shape , des2.shape)
         #print(len(kp1), len(kp2))
-        if len(kp1) == 0 or len(kp2) == 0 :
+        if len(kp2) < 3 :
             self.error = "No keypoints found, Try again."
             return
+        else :
+            self.error = None
 
         FLANN_INDEX_KDTREE = 1
         index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
@@ -384,8 +386,8 @@ class OT_OT(Frame):
                 cv2.line(self.frame,(center_x-10 ,center_y),(center_x+10 ,center_y),(255,0,0),2)
                 cv2.line(self.frame,(center_x ,center_y-10),(center_x ,center_y+10),(255,0,0),2)
                 cv2.circle(self.frame, (center_x, center_y), 15, (255,0,0), 2)
-
-            #cv2.putText(self.frame,str(len(self.coords)),(0,20),cv2.FONT_HERSHEY_SIMPLEX,1,color = (200,50,75),thickness = 3)
+            else : 
+                cv2.putText(self.frame,"Object Not Found",(0,20),cv2.FONT_HERSHEY_SIMPLEX,1,color = (200,50,75),thickness = 3)
 
             self.prev_gray = self.frame_gray.copy()
             self.prev_points = self.new_points.reshape(-1,1,2)
@@ -400,20 +402,7 @@ class OT_OT(Frame):
             self.error = None
         if self.scan_count == 500 :
             self.scan_count == 0
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 
 
 
@@ -423,6 +412,7 @@ class OT_OT(Frame):
     def reset_selected_image(self):
         self.click_count = 0
         self.tracker_enabled = False
+        self.error = None
 
 
 
@@ -498,6 +488,8 @@ class OT_OT(Frame):
 
             if self.tracker_enabled : 
                 self.object_tracking()
+            elif self.error is not None : 
+                cv2.putText(self.frame,self.error,(0,20),cv2.FONT_HERSHEY_SIMPLEX,1,color = (200,50,75),thickness = 3)
 
             imgTK2 = self.convert_imgCV_to_imgTK(self.frame)         
 
@@ -519,6 +511,6 @@ class OT_OT(Frame):
         if self.cap: 
             self.cap.release()
             self.released = True
-            print("relesed")
+            #print("relesed")
         controller.show_frame("IndexPage")
         
