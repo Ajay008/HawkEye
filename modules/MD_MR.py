@@ -6,6 +6,7 @@ from PIL import ImageTk
 import cv2
 import numpy as np
 import threading
+import os
 
 #Specific
 from datetime import datetime
@@ -34,6 +35,7 @@ class MD_MR(Frame):
     img_counter = 0
     skip_counter = 0
     temp_img_for_video = []
+    skip_first_few_frames = 0
 
 
     def __init__(self, parent, controller):
@@ -130,6 +132,11 @@ class MD_MR(Frame):
         #Common   
         self.settings_panel.pack(side=RIGHT, fill=Y)
 
+        #Specific
+        if not os.path.exists('./recordings'):
+            os.makedirs('./recordings')
+
+
     #Specific
     def enable_start_recording(self):
         if self.start_recording_btn['text'] == "Start Recording" :
@@ -149,15 +156,18 @@ class MD_MR(Frame):
         hist, bins = np.histogram(img_temp_and_bgr.ravel(), 256, [0,256])
         print(hist[255])
 
-        if hist[255] > self.hist_threshold :
-            self.skip_counter = 0
-            self.img_counter += 1 
-            self.temp_img_for_video.append(img)
+        if self.skip_first_few_frames < 5 :
+            self.skip_first_few_frames += 1
+        else :  
+            if hist[255] > self.hist_threshold :
+                self.skip_counter = 0
+                self.img_counter += 1 
+                self.temp_img_for_video.append(img)
 
-        else : 
-            self.skip_counter += 1
-            if self.skip_counter >= 3 :
-                self.save_recording()
+            else : 
+                self.skip_counter += 1
+                if self.skip_counter >= 3 :
+                    self.save_recording()
 
     def save_recording(self):
         if self.img_counter >= 1:   
