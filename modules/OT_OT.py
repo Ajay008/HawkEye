@@ -397,6 +397,9 @@ class OT_OT(Frame):
 
             self.prev_gray = self.frame_gray.copy()
             self.prev_points = self.new_points.reshape(-1,1,2)
+        
+        else : 
+            cv2.putText(self.frame,"Object Not Found",(0,20),cv2.FONT_HERSHEY_SIMPLEX,1,color = (200,50,75),thickness = 3)
 
             
         cond_1 = self.new_points is None
